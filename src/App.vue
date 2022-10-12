@@ -2,7 +2,7 @@
 import {ref, computed, watch} from 'vue'
 import dates from './date'
 
-let userPage = ref(2)
+let userPage = ref(4)
 let thisPageNum = ref(1)
 const d = ref(dates)
 
@@ -23,32 +23,40 @@ const sortByPhone = () => d.value.sort((a, b) => {
 })
 const sortByUsername = () => d.value.sort((a, b) => a.username.localeCompare(b.username))
 const sortByEmail = () => d.value.sort((a, b) => a.email.localeCompare(b.email))
-const filteredList = computed(() => {
-  return d.value.filter((elem) => comp === '' ? true : elem.company.indexOf(comp) > -1)
-})
 
-const filter = () => {
-  console.log('fil')
-}
+const filterName = ref('')
+const filterCon = ref('')
+const inpVal = ref('')
+
+const filteredList = computed(() => {
+  if ((filterName.value === '' || filterCon.value === '')) {
+    return d.value
+  }
+  return d.value.filter((item) => inpVal.value === '' ? true : filterName.value.indexOf(inpVal.value) > -1)
+})
 
 </script>
 
 <template>
   <div class="menu__filter">
-    <select id="filter-name" onChange="filter()">
+    <select id="filter-name" v-model="filterName">
+      <option disabled value="">Выбор колонки</option>
       <option value="name">Name</option>
       <option value="phone">Phone</option>
       <option value="username">Username</option>
       <option value="email">Email</option>
     </select>
-    <select id="filter-conditions" onChange="filter()">
+    <select id="filter-conditions" v-model="filterCon">
+      <option disabled value="">Выбор условия</option>
       <option value="equals">Равно</option>
       <option value="contains">Содержит</option>
       <option value="more">Больше</option>
       <option value="less">Меньше</option>
     </select>
-    <input type="text" id="filter-value">
+    <input type="text" id="filter-value" placeholder="edit me" v-model="inpVal" @input="filteredList">
   </div>
+
+
   <div class="header">
     <p @click="sortByName">
       <span class="mane-filter icon">↕</span>
@@ -139,6 +147,11 @@ const filter = () => {
 
 .icon {
   margin-right: 5px;
+}
 
+.menu__filter {
+  display: flex;
+  justify-content: end;
+  margin-right: 84px;
 }
 </style>
