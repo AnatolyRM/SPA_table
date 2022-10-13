@@ -2,16 +2,12 @@
 import {ref, computed, watch} from 'vue'
 import dates from './date'
 
-let userPage = ref(4)
+let userPage = ref(5)
 let thisPageNum = ref(1)
 const d = ref(dates)
+let arrLength = ref(d.value.length)
 
-const pages = computed(() => Math.ceil(d.value.length / userPage.value))
-const paginatUser = computed(() => {
-  let from = (thisPageNum.value - 1) * userPage.value
-  let to = from + userPage.value
-  return d.value.slice(from, to)
-})
+const pages = computed(() => Math.ceil(arrLength.value / userPage.value))
 
 const pageClick = page => thisPageNum.value = page
 
@@ -28,11 +24,42 @@ const filterName = ref('')
 const filterCon = ref('')
 const inpVal = ref('')
 
-const filteredList = computed(() => {
-  if ((filterName.value === '' || filterCon.value === '')) {
-    return d.value
+const funConditions = (param, item) => {
+  switch (param) {
+    case 'equals':
+      return (item[filterName.value].toLowerCase() === inpVal.value.toLowerCase() ||
+          item[filterName.value].toLowerCase().split(' ').some(el => el === inpVal.value.toLowerCase()))
+    case 'contains':
+      return item[filterName.value].includes(inpVal.value)
+    case 'more':
+      let formNumber = String(item[filterName.value]).replace(/[^0-9]/g, '')
+      if (!!formNumber) {
+        return (+formNumber > +inpVal.value)
+      } else {
+        return item[filterName.value] > inpVal.value
+      }
+
+    case 'less':
+      let fNumber = String(item[filterName.value]).replace(/[^0-9]/g, '')
+      if (!!fNumber) {
+        return (+fNumber < +inpVal.value)
+      } else {
+        return item[filterName.value] < inpVal.value
+      }
   }
-  return d.value.filter((item) => inpVal.value === '' ? true : filterName.value.indexOf(inpVal.value) > -1)
+}
+const paginatUser = computed(() => {
+  let from = (thisPageNum.value - 1) * userPage.value
+  let to = from + userPage.value
+  if ((filterName.value === '' || filterCon.value === '')) {
+    return d.value.slice(from, to)
+  } else {
+    return d.value.filter((item) => inpVal.value === ''
+            ? true
+            : funConditions(filterCon.value, item),
+        arrLength.value = d.value.filter((item) => inpVal.value === '' ? true : funConditions(filterCon.value, item)).length
+    ).slice(from, to)
+  }
 })
 
 </script>
@@ -53,7 +80,7 @@ const filteredList = computed(() => {
       <option value="more">Больше</option>
       <option value="less">Меньше</option>
     </select>
-    <input type="text" id="filter-value" placeholder="edit me" v-model="inpVal" @input="filteredList">
+    <input type="text" id="filter-value" placeholder="edit me" v-model="inpVal">
   </div>
 
 
